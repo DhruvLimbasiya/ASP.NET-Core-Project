@@ -1,0 +1,23 @@
+# .NET / C# Build Outputs
+[Bb]in/
+[Oo]bj/
+bin/
+obj/
+
+# Visual Studio & IDE Files
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+LeaveManagementServer.csproj.user
+
+# Environment & Secret Settings
+appsettings.Development.json
+appsettings.json
+
+# Log & Temporary Files
+*.log
+*.tmp

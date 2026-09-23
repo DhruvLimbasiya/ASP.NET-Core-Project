@@ -1,0 +1,320 @@
+POSTMAN API ENDPOINTS GUIDE
+===========================
+Base URL (HTTP):  http://localhost:5148
+Base URL (HTTPS): https://localhost:7291
+
+DEMO LOGIN CREDENTIALS
+======================
+System Administrator Account:
+  Email:    sysadmin@lms.com
+  Password: adminpassword123
+
+Manager Account:
+  Email:    admin@lms.com
+  Password: adminpassword
+
+Employee Account:
+  Email:    jane@lms.com
+  Password: password
+
+All endpoints below accept and return JSON payloads wrapped in the CommonResponse structure:
+{
+  "success": true,
+  "message": "Operation completed successfully.",
+  "data": <Payload>,
+  "errors": null
+}
+
+--------------------------------------------------------------------------------
+0. Auth Controller (Authentication & JWT)
+--------------------------------------------------------------------------------
+- POST   /api/Auth/login
+  Description: Authenticate user credentials and receive a JWT Bearer token.
+  Body (JSON):
+  {
+    "email": "sysadmin@lms.com",
+    "password": "adminpassword123"
+  }
+  Response Data (JSON):
+  {
+    "token": "<jwt_token_string>",
+    "user": { ... },
+    "tokenType": "Bearer",
+    "expiresInMinutes": 480
+  }
+
+- GET    /api/Auth/me
+  Description: Get current authenticated user profile (Requires Bearer token header).
+
+--------------------------------------------------------------------------------
+1. Users Controller
+--------------------------------------------------------------------------------
+- GET    /api/Users
+  Description: Retrieve list of all users.
+  Response: Array of User objects.
+
+- GET    /api/Users/{id}
+  Description: Retrieve a specific user by ID.
+
+- POST   /api/Users
+  Description: Create a new user.
+  Body (JSON):
+  {
+    "RoleId": 1,
+    "FirstName": "Jane",
+    "LastName": "Smith",
+    "Email": "jane.smith@example.com",
+    "Password": "password123",
+    "IsActive": true,
+    "ProfilePicturePath": "/avatars/jane.png"
+  }
+
+- PUT    /api/Users/{id}
+  Description: Update an existing user.
+  Body (JSON):
+  {
+    "UserId": 2,
+    "RoleId": 1,
+    "FirstName": "Jane",
+    "LastName": "Smith",
+    "Email": "jane.smith@example.com",
+    "Password": "password123",
+    "IsActive": true,
+    "ProfilePicturePath": "/avatars/jane.png"
+  }
+
+- DELETE /api/Users/{id}
+  Description: Delete a user by ID.
+
+--------------------------------------------------------------------------------
+2. LeaveRequests Controller
+--------------------------------------------------------------------------------
+- GET    /api/LeaveRequests
+  Description: Retrieve all leave requests.
+
+- GET    /api/LeaveRequests/{id}
+  Description: Get details of a single leave request.
+
+- POST   /api/LeaveRequests
+  Description: Submit a new leave request.
+  Body (JSON):
+  {
+    "UserId": 2,
+    "LeaveTypeId": 1,
+    "StartDate": "2026-08-04T00:00:00Z",
+    "EndDate": "2026-08-07T00:00:00Z",
+    "TotalDays": 4,
+    "Reason": "Family vacation",
+    "StatusId": 1
+  }
+
+- PUT    /api/LeaveRequests/{id}
+  Description: Update a leave request.
+  Body (JSON):
+  {
+    "RequestId": 3,
+    "UserId": 2,
+    "LeaveTypeId": 1,
+    "StartDate": "2026-08-04T00:00:00Z",
+    "EndDate": "2026-08-07T00:00:00Z",
+    "TotalDays": 4,
+    "Reason": "Family vacation (updated reason)",
+    "StatusId": 1
+  }
+
+- DELETE /api/LeaveRequests/{id}
+  Description: Cancel/Delete a leave request.
+
+--------------------------------------------------------------------------------
+3. LeaveBalances Controller
+--------------------------------------------------------------------------------
+- GET    /api/LeaveBalances
+  Description: Get list of all leave balances.
+
+- GET    /api/LeaveBalances/{id}
+  Description: Get a specific leave balance by ID.
+
+- POST   /api/LeaveBalances
+  Description: Allocate leave balance to a user.
+  Body (JSON):
+  {
+    "UserId": 2,
+    "LeaveTypeId": 1,
+    "CalendarYearId": 1,
+    "AllocatedDays": 20,
+    "UsedDays": 0
+  }
+
+- PUT    /api/LeaveBalances/{id}
+  Description: Update a leave balance record.
+  Body (JSON):
+  {
+    "BalanceId": 1,
+    "UserId": 2,
+    "LeaveTypeId": 1,
+    "CalendarYearId": 1,
+    "AllocatedDays": 20,
+    "UsedDays": 5
+  }
+
+- DELETE /api/LeaveBalances/{id}
+  Description: Remove a leave balance allocation.
+
+--------------------------------------------------------------------------------
+4. LeaveApprovals Controller
+--------------------------------------------------------------------------------
+- GET    /api/LeaveApprovals
+  Description: Get list of all leave approvals.
+
+- GET    /api/LeaveApprovals/{id}
+  Description: Get details of a specific leave approval.
+
+- POST   /api/LeaveApprovals
+  Description: Create a leave approval record (approve/reject a request).
+  Body (JSON):
+  {
+    "RequestId": 1,
+    "ApprovedBy": 1,
+    "Action": "Approved",
+    "Comments": "Have a nice holiday!",
+    "ActionDate": "2026-08-03T12:00:00Z"
+  }
+
+- PUT    /api/LeaveApprovals/{id}
+  Description: Update a leave approval entry.
+  Body (JSON):
+  {
+    "ApprovalId": 1,
+    "RequestId": 1,
+    "ApprovedBy": 1,
+    "Action": "Approved",
+    "Comments": "Updated comments",
+    "ActionDate": "2026-08-03T12:00:00Z"
+  }
+
+- DELETE /api/LeaveApprovals/{id}
+  Description: Delete approval record.
+
+--------------------------------------------------------------------------------
+5. LeaveTypes Controller
+--------------------------------------------------------------------------------
+- GET    /api/LeaveTypes
+  Description: Get list of all leave types.
+
+- GET    /api/LeaveTypes/{id}
+  Description: Get a specific leave type.
+
+- POST   /api/LeaveTypes
+  Description: Add a new leave type.
+  Body (JSON):
+  {
+    "TypeName": "Parental Leave",
+    "CssClass": "leave-parental"
+  }
+
+- PUT    /api/LeaveTypes/{id}
+  Description: Update a leave type.
+  Body (JSON):
+  {
+    "LeaveTypeId": 4,
+    "TypeName": "Parental Leave",
+    "CssClass": "leave-parental"
+  }
+
+- DELETE /api/LeaveTypes/{id}
+  Description: Delete a leave type.
+
+--------------------------------------------------------------------------------
+6. Roles Controller
+--------------------------------------------------------------------------------
+- GET    /api/Roles
+  Description: Get all user roles.
+
+- GET    /api/Roles/{id}
+  Description: Get specific role by ID.
+
+- POST   /api/Roles
+  Description: Create a new role.
+  Body (JSON):
+  {
+    "RoleName": "Manager",
+    "Description": "Manages leave approvals and rules"
+  }
+
+- PUT    /api/Roles/{id}
+  Description: Update a role.
+  Body (JSON):
+  {
+    "RoleId": 1,
+    "RoleName": "Manager",
+    "Description": "Updated manager description"
+  }
+
+- DELETE /api/Roles/{id}
+
+--------------------------------------------------------------------------------
+7. Statuses Controller
+--------------------------------------------------------------------------------
+- GET    /api/Statuses
+  Description: Get all request statuses (e.g. Pending, Approved, Rejected).
+
+- GET    /api/Statuses/{id}
+  Description: Get status by ID.
+
+- POST   /api/Statuses
+  Description: Create a new status.
+  Body (JSON):
+  {
+    "StatusName": "Pending",
+    "StatusCssClass": "status-pending"
+  }
+
+- PUT    /api/Statuses/{id}
+  Description: Update status.
+  Body (JSON):
+  {
+    "StatusId": 1,
+    "StatusName": "Pending",
+    "StatusCssClass": "status-pending"
+  }
+
+- DELETE /api/Statuses/{id}
+
+--------------------------------------------------------------------------------
+8. CalendarYears Controller
+--------------------------------------------------------------------------------
+- GET    /api/CalendarYears
+  Description: Get list of calendar years.
+
+- GET    /api/CalendarYears/{id}
+
+- POST   /api/CalendarYears
+  Description: Create a new calendar year range.
+  Body (JSON):
+  {
+    "CalendarYearName": "CY-2026",
+    "StartDate": "2026-01-01T00:00:00Z",
+    "EndDate": "2026-12-31T00:00:00Z"
+  }
+
+- PUT    /api/CalendarYears/{id}
+  Description: Update calendar year.
+  Body (JSON):
+  {
+    "CalendarYearId": 1,
+    "CalendarYearName": "CY-2026",
+    "StartDate": "2026-01-01T00:00:00Z",
+    "EndDate": "2026-12-31T00:00:00Z"
+  }
+
+- DELETE /api/CalendarYears/{id}
+
+--------------------------------------------------------------------------------
+9. Dashboard Controller
+--------------------------------------------------------------------------------
+- GET    /api/Dashboard/user/{userId}
+  Description: Retrieve the dashboard data structured for a User/Employee role (e.g. balances, pending requests count, recent requests).
+
+- GET    /api/Dashboard/manager
+  Description: Retrieve the dashboard data structured for a Manager role (e.g. pending approvals count, employees on leave today, recent pending requests, leave type distribution).
+
