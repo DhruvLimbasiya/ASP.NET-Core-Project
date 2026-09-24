@@ -196,7 +196,7 @@ export default function ManagersPage() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
                     <img
-                      src={user.ProfilePicturePath || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}
+                      src={user.ProfilePicturePath?.startsWith('/uploads/') ? `http://localhost:5148${user.ProfilePicturePath}` : (user.ProfilePicturePath || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80')}
                       alt={`${user.FirstName} ${user.LastName}`}
                       style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #3b82f6' }}
                     />

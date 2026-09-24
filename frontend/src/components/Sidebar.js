@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Calendar, LayoutDashboard, Clock, Layers, Users, UserCheck, CalendarDays, UserCog } from 'lucide-react';
+import { Calendar, LayoutDashboard, Clock, Layers, Users, UserCheck, CalendarDays, UserCog, User } from 'lucide-react';
 
 export default function Sidebar({ isManager, isSystemAdmin, currentUser }) {
   const pathname = usePathname();
@@ -28,6 +28,17 @@ export default function Sidebar({ isManager, isSystemAdmin, currentUser }) {
           </Link>
         </li>
         
+        <li>
+          <Link
+            href="/profile"
+            className={`sidebar-item ${pathname === '/profile' ? 'active' : ''}`}
+            style={{ textDecoration: 'none' }}
+          >
+            <User size={18} />
+            <span>My Profile</span>
+          </Link>
+        </li>
+
         {!isManager && (
           <li>
             <Link

@@ -625,10 +625,41 @@ export function LeaveProvider({ children }) {
         await fetchData();
         return true;
       }
-    } catch (error) {
-      console.error('Error approving user account:', error);
     }
     return false;
+  };
+
+  const updateUserProfile = async (userId, formData) => {
+    const token = jwtToken || (typeof window !== 'undefined' ? localStorage.getItem('lms_jwt_token') : null);
+    try {
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE}/Users/${userId}/profile`, {
+        method: 'PUT',
+        headers,
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const updatedUser = toPascalCase(data.data);
+        setCurrentUser(updatedUser);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lms_user', JSON.stringify(updatedUser));
+        }
+        await fetchData();
+        return { success: true, user: updatedUser, message: data.message || 'Profile updated successfully.' };
+      } else {
+        return { success: false, message: data.message || 'Failed to update profile.' };
+      }
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      return { success: false, message: 'Server communication error.' };
+    }
   };
 
   return (
@@ -659,6 +690,7 @@ export function LeaveProvider({ children }) {
       saveLookup,
       deleteLookup,
       approveUserAccount,
+      updateUserProfile,
       
       // Shared modal states & handlers
       showRequestModal,

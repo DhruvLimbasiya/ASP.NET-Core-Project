@@ -257,7 +257,154 @@ namespace LeaveManagementServer.Controllers
             });
         }
 
-        [HttpPost]
+        [HttpPut("{id:int}/profile")]
+        public async Task<ActionResult<CommonResponse<UserDTO>>> UpdateProfile(int id, [FromForm] UpdateProfileDTO dto)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+            {
+                return NotFound(new CommonResponse<UserDTO>
+                {
+                    Success = false,
+                    Message = "User not found."
+                });
+            }
+
+            // Editable fields: FirstName, LastName, Email, Password (if provided), ProfilePicture
+            // RESTRICTED / IMMUTABLE FIELDS: CompanyName, TeamName, RoleId, ManagerId, IsActive are NOT modified!
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.Email = dto.Email;
+
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                user.Password = dto.Password;
+            }
+
+            if (dto.ProfilePicture != null && dto.ProfilePicture.Length > 0)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(dto.ProfilePicture.FileName).ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new CommonResponse<UserDTO>
+                    {
+                        Success = false,
+                        Message = "Invalid image file extension. Allowed formats: jpg, jpeg, png, gif, webp."
+                    });
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var fileName = $"avatar_user_{id}_{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.ProfilePicture.CopyToAsync(stream);
+                }
+
+                user.ProfilePicturePath = $"/uploads/avatars/{fileName}";
+            }
+
+            await _context.SaveChangesAsync();
+
+            var updatedUserDto = new UserDTO
+            {
+                UserId = user.UserId,
+                RoleId = user.RoleId,
+                Role = user.Role != null ? new RoleDTO
+                {
+                    RoleId = user.Role.RoleId,
+                    RoleName = user.Role.RoleName,
+                    Description = user.Role.Description
+                } : null,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Password = user.Password,
+                IsActive = user.IsActive,
+                ProfilePicturePath = user.ProfilePicturePath,
+                ManagerId = user.ManagerId,
+                CompanyName = user.CompanyName,
+                TeamName = user.TeamName
+            };
+
+            return Ok(new CommonResponse<UserDTO>
+            {
+                Success = true,
+                Message = "Profile updated successfully.",
+                Data = updatedUserDto
+            });
+        }
+
+        [HttpPost("{id:int}/upload-avatar")]
+        public async Task<ActionResult<CommonResponse<string>>> UploadAvatar(int id, IFormFile file)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new CommonResponse<string>
+                {
+                    Success = false,
+                    Message = "User not found."
+                });
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new CommonResponse<string>
+                {
+                    Success = false,
+                    Message = "No file uploaded."
+                });
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new CommonResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid image file format."
+                });
+            }
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var fileName = $"avatar_user_{id}_{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var avatarUrl = $"/uploads/avatars/{fileName}";
+            user.ProfilePicturePath = avatarUrl;
+            await _context.SaveChangesAsync();
+
+            return Ok(new CommonResponse<string>
+            {
+                Success = true,
+                Message = "Avatar uploaded successfully.",
+                Data = avatarUrl
+            });
+        }
         [AllowAnonymous]
         public async Task<ActionResult<CommonResponse<UserDTO>>> PostUser(UserDTO userDto)
         {
