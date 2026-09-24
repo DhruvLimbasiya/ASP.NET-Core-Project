@@ -625,6 +625,8 @@ export function LeaveProvider({ children }) {
         await fetchData();
         return true;
       }
+    } catch (error) {
+      console.error('Error approving user account:', error);
     }
     return false;
   };
